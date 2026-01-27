@@ -22,11 +22,6 @@ Deine Fähigkeiten & Methodik:
 
 Stütze deinen Rat immer auf den Inhalt des Buches.
 Tonfall: Autoritär, kultiviert, philosophisch, aber zutiefst praxisnah. Kein Geschwafel.
-
----
-
-Das folgende ist der Inhalt des Buches, auf dessen Grundlage du beraten sollst:
-
 """
 
 
@@ -63,20 +58,36 @@ class GeminiService:
             if cache.display_name == "zippel-book-cache":
                 print(f"Found existing cache: {cache.name}")
                 self.cached_content = cache
-                self.model = genai.GenerativeModel.from_cached_content(self.cached_content)
+                self.model = genai.GenerativeModel.from_cached_content(
+                    self.cached_content,
+                    generation_config={"temperature": 0.7}
+                )
                 return
 
         # Create new cache if none exists
         print("Creating new cache for book content...")
+
+        full_system_instruction = f"""{SYSTEM_PROMPT}
+
+=== BOOK KNOWLEDGE BASE START ===
+{book_content}
+=== BOOK KNOWLEDGE BASE END ===
+
+Use the knowledge above as your primary source of truth.
+"""
+
         self.cached_content = caching.CachedContent.create(
             model="models/gemini-3-flash-preview",
             display_name="zippel-book-cache",
-            system_instruction=SYSTEM_PROMPT + book_content,
+            system_instruction=full_system_instruction,
             contents=[],  # Book is in system instruction
             ttl=datetime.timedelta(hours=2),
         )
         print(f"Cache created: {self.cached_content.name}")
-        self.model = genai.GenerativeModel.from_cached_content(self.cached_content)
+        self.model = genai.GenerativeModel.from_cached_content(
+            self.cached_content,
+            generation_config={"temperature": 0.7}
+        )
 
     def create_chat(self, history: list[dict] = None):
         """Create a new chat session with optional history."""
