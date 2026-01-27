@@ -1,7 +1,7 @@
 import os
-from pathlib import Path
 import google.generativeai as genai
 from google.generativeai import caching
+from supabase import create_client
 import datetime
 
 
@@ -42,12 +42,16 @@ class GeminiService:
         self._initialize_cache()
 
     def _load_book_content(self) -> str:
-        book_path = Path(__file__).parent.parent.parent / "book.md"
-        if not book_path.exists():
-            raise FileNotFoundError(f"Book not found at {book_path}")
+        supabase_url = os.getenv("SUPABASE_URL")
+        supabase_key = os.getenv("SUPABASE_SERVICE_KEY")
 
-        with open(book_path, "r", encoding="utf-8") as f:
-            return f.read()
+        if not supabase_url or not supabase_key:
+            raise ValueError("SUPABASE_URL and SUPABASE_SERVICE_KEY must be set")
+
+        supabase = create_client(supabase_url, supabase_key)
+        result = supabase.storage.from_("private-content").download("book.md")
+
+        return result.decode("utf-8")
 
     def _initialize_cache(self):
         """Initialize or retrieve the cached content with the book."""
