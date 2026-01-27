@@ -13,7 +13,7 @@ import {
   ChatSession,
   Message,
 } from '@/lib/supabase'
-import { SendIcon } from 'lucide-react'
+import { SendIcon, MenuIcon } from 'lucide-react'
 
 type ChatMessage = {
   id: string
@@ -24,9 +24,10 @@ type ChatMessage = {
 type ChatWindowProps = {
   sessionId: string | null
   onNewSession: (session: ChatSession) => void
+  onMenuClick: () => void
 }
 
-export function ChatWindow({ sessionId, onNewSession }: ChatWindowProps) {
+export function ChatWindow({ sessionId, onNewSession, onMenuClick }: ChatWindowProps) {
   const [messages, setMessages] = useState<ChatMessage[]>([])
   const [input, setInput] = useState('')
   const [isLoading, setIsLoading] = useState(false)
@@ -164,14 +165,26 @@ export function ChatWindow({ sessionId, onNewSession }: ChatWindowProps) {
 
   return (
     <div className="flex flex-col h-full overflow-hidden">
+      {/* Mobile header - only visible on mobile */}
+      <div className="md:hidden flex items-center gap-3 p-3 border-b bg-card">
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={onMenuClick}
+        >
+          <MenuIcon className="h-5 w-5" />
+        </Button>
+        <h1 className="text-lg font-bold">ZippelGPT</h1>
+      </div>
+
       {/* Messages area */}
       <ScrollArea className="flex-1 overflow-y-auto">
         <div className="p-4">
         {messages.length === 0 ? (
-          <div className="h-full flex items-center justify-center min-h-[400px]">
-            <div className="text-center text-muted-foreground max-w-md">
-              <h2 className="text-2xl font-bold mb-2">Willkommen bei ZippelGPT</h2>
-              <p>
+          <div className="h-full flex items-center justify-center min-h-[200px] md:min-h-[400px]">
+            <div className="text-center text-muted-foreground max-w-md px-4">
+              <h2 className="text-xl md:text-2xl font-bold mb-2">Willkommen bei ZippelGPT</h2>
+              <p className="text-sm md:text-base">
                 Ich bin Christian Zippel, dein philosophischer Mentor.
                 Erzähle mir von deinen Herausforderungen und ich werde dir
                 helfen, den Weg zur Exzellenz zu finden.
@@ -199,17 +212,17 @@ export function ChatWindow({ sessionId, onNewSession }: ChatWindowProps) {
       </ScrollArea>
 
       {/* Input area */}
-      <div className="border-t p-4 bg-background">
-        <form onSubmit={handleSubmit} className="flex gap-3 max-w-3xl mx-auto">
+      <div className="border-t p-3 md:p-4 bg-background">
+        <form onSubmit={handleSubmit} className="flex gap-2 md:gap-3 max-w-3xl mx-auto">
           <textarea
             ref={textareaRef}
             value={input}
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={handleKeyDown}
-            placeholder="Schreibe deine Nachricht... (Enter zum Senden, Shift+Enter für neue Zeile)"
+            placeholder="Nachricht schreiben..."
             disabled={isLoading}
             rows={1}
-            className="flex-1 resize-none rounded-lg border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 max-h-32 overflow-y-auto"
+            className="flex-1 resize-none rounded-lg border border-input bg-background px-3 py-2 text-base md:text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 max-h-32 overflow-y-auto"
             style={{
               minHeight: '2.5rem',
               height: 'auto',

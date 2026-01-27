@@ -17,6 +17,7 @@ export default function ChatPage() {
   const [loading, setLoading] = useState(true)
   const [sessions, setSessions] = useState<ChatSession[]>([])
   const [currentSessionId, setCurrentSessionId] = useState<string | null>(null)
+  const [sidebarOpen, setSidebarOpen] = useState(false)
 
   useEffect(() => {
     // Check authentication
@@ -82,22 +83,28 @@ export default function ChatPage() {
     )
   }
 
+  const handleSelectSession = (sessionId: string | null) => {
+    setCurrentSessionId(sessionId)
+    setSidebarOpen(false) // Close sidebar on mobile when selecting a chat
+  }
+
   return (
     <div className="h-screen flex overflow-hidden">
-      <div className="flex-shrink-0">
-        <Sidebar
-          sessions={sessions}
-          currentSessionId={currentSessionId}
-          onSelectSession={setCurrentSessionId}
-          onNewChat={handleNewChat}
-          onDeleteSession={handleDeleteSession}
-          onLogout={handleLogout}
-        />
-      </div>
+      <Sidebar
+        sessions={sessions}
+        currentSessionId={currentSessionId}
+        onSelectSession={handleSelectSession}
+        onNewChat={handleNewChat}
+        onDeleteSession={handleDeleteSession}
+        onLogout={handleLogout}
+        isOpen={sidebarOpen}
+        onClose={() => setSidebarOpen(false)}
+      />
       <div className="flex-1 min-w-0 overflow-hidden">
         <ChatWindow
           sessionId={currentSessionId}
           onNewSession={handleNewSession}
+          onMenuClick={() => setSidebarOpen(true)}
         />
       </div>
     </div>

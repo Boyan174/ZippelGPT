@@ -12,7 +12,7 @@ import {
 } from '@/components/ui/dialog'
 import { cn } from '@/lib/utils'
 import { ChatSession } from '@/lib/supabase'
-import { PlusIcon, LogOutIcon, TrashIcon } from 'lucide-react'
+import { PlusIcon, LogOutIcon, TrashIcon, XIcon } from 'lucide-react'
 
 type SidebarProps = {
   sessions: ChatSession[]
@@ -21,6 +21,8 @@ type SidebarProps = {
   onNewChat: () => void
   onDeleteSession: (sessionId: string) => void
   onLogout: () => void
+  isOpen: boolean
+  onClose: () => void
 }
 
 export function Sidebar({
@@ -30,6 +32,8 @@ export function Sidebar({
   onNewChat,
   onDeleteSession,
   onLogout,
+  isOpen,
+  onClose,
 }: SidebarProps) {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
   const [sessionToDelete, setSessionToDelete] = useState<ChatSession | null>(null)
@@ -48,12 +52,20 @@ export function Sidebar({
     setSessionToDelete(null)
   }
 
-  return (
-    <>
+  const sidebarContent = (
     <div className="w-64 min-w-[256px] max-w-[256px] bg-card h-full flex flex-col border-r overflow-hidden">
       {/* Header */}
-      <div className="p-4 border-b">
+      <div className="p-4 border-b flex items-center justify-between">
         <h1 className="text-xl font-bold">ZippelGPT</h1>
+        {/* Close button - only visible on mobile */}
+        <Button
+          variant="ghost"
+          size="icon"
+          className="md:hidden"
+          onClick={onClose}
+        >
+          <XIcon className="h-5 w-5" />
+        </Button>
       </div>
 
       {/* New Chat Button */}
@@ -94,7 +106,7 @@ export function Sidebar({
                 </button>
                 <button
                   type="button"
-                  className="p-2 text-muted-foreground hover:text-foreground opacity-0 group-hover:opacity-100 transition-opacity"
+                  className="p-2 text-muted-foreground hover:text-foreground opacity-0 group-hover:opacity-100 md:opacity-0 md:group-hover:opacity-100 max-md:opacity-100 transition-opacity"
                   onClick={(e) => handleDeleteClick(e, session)}
                 >
                   <TrashIcon className="h-4 w-4" />
@@ -117,6 +129,29 @@ export function Sidebar({
         </Button>
       </div>
     </div>
+  )
+
+  return (
+    <>
+      {/* Desktop sidebar - always visible */}
+      <div className="hidden md:block flex-shrink-0">
+        {sidebarContent}
+      </div>
+
+      {/* Mobile sidebar - overlay */}
+      {isOpen && (
+        <div className="fixed inset-0 z-50 md:hidden">
+          {/* Backdrop */}
+          <div
+            className="fixed inset-0 bg-black/50"
+            onClick={onClose}
+          />
+          {/* Sidebar */}
+          <div className="fixed inset-y-0 left-0 z-50 animate-in slide-in-from-left duration-300">
+            {sidebarContent}
+          </div>
+        </div>
+      )}
 
     {/* Delete Confirmation Dialog */}
     <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
