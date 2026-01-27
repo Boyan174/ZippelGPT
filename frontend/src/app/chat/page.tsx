@@ -89,7 +89,7 @@ export default function ChatPage() {
   }
 
   return (
-    <div className="h-screen flex overflow-hidden">
+    <div className="h-dvh flex overflow-hidden">
       <Sidebar
         sessions={sessions}
         currentSessionId={currentSessionId}

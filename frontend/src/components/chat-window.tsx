@@ -177,8 +177,8 @@ export function ChatWindow({ sessionId, onNewSession, onMenuClick }: ChatWindowP
         <h1 className="text-lg font-bold">ZippelGPT</h1>
       </div>
 
-      {/* Messages area */}
-      <ScrollArea className="flex-1 overflow-y-auto">
+      {/* Messages area - scrollable, takes remaining space */}
+      <ScrollArea className="flex-1 min-h-0 overflow-y-auto">
         <div className="p-4">
         {messages.length === 0 ? (
           <div className="h-full flex items-center justify-center min-h-[200px] md:min-h-[400px]">
@@ -211,8 +211,8 @@ export function ChatWindow({ sessionId, onNewSession, onMenuClick }: ChatWindowP
         </div>
       </ScrollArea>
 
-      {/* Input area */}
-      <div className="border-t p-3 md:p-4 bg-background">
+      {/* Input area - fixed at bottom with safe area for notched devices */}
+      <div className="flex-shrink-0 border-t p-3 md:p-4 bg-background pb-[max(0.75rem,env(safe-area-inset-bottom))]">
         <form onSubmit={handleSubmit} className="flex gap-2 md:gap-3 max-w-3xl mx-auto">
           <textarea
             ref={textareaRef}
