@@ -48,23 +48,8 @@ class GeminiService:
 
         return result.decode("utf-8")
 
-    def _initialize_cache(self):
-        """Initialize or retrieve the cached content with the book."""
-        book_content = self._load_book_content()
-
-        # Check for existing cache first
-        existing_caches = list(caching.CachedContent.list())
-        for cache in existing_caches:
-            if cache.display_name == "zippel-book-cache":
-                print(f"Found existing cache: {cache.name}")
-                self.cached_content = cache
-                self.model = genai.GenerativeModel.from_cached_content(
-                    self.cached_content,
-                    generation_config={"temperature": 0.7}
-                )
-                return
-
-        # Create new cache if none exists
+    def _create_cache(self, book_content: str):
+        """Create a new cache with the book content."""
         print("Creating new cache for book content...")
 
         full_system_instruction = f"""{SYSTEM_PROMPT}
@@ -77,17 +62,45 @@ Use the knowledge above as your primary source of truth.
 """
 
         self.cached_content = caching.CachedContent.create(
-            model="models/gemini-3-flash-preview",
+            model="models/gemini-3.0-pro-preview",
             display_name="zippel-book-cache",
             system_instruction=full_system_instruction,
-            contents=[],  # Book is in system instruction
+            contents=[],
             ttl=datetime.timedelta(hours=2),
         )
-        print(f"Cache created: {self.cached_content.name}")
+        print(f"Cache created: {self.cached_content.name}, expires: {self.cached_content.expire_time}")
         self.model = genai.GenerativeModel.from_cached_content(
             self.cached_content,
             generation_config={"temperature": 0.7}
         )
+
+    def _initialize_cache(self):
+        """Initialize or retrieve the cached content with the book."""
+        book_content = self._load_book_content()
+
+        # Check for existing cache first
+        existing_caches = list(caching.CachedContent.list())
+        for cache in existing_caches:
+            if cache.display_name == "zippel-book-cache":
+                # Check if cache is still valid (has time remaining)
+                if cache.expire_time and cache.expire_time > datetime.datetime.now(datetime.timezone.utc):
+                    print(f"Found valid cache: {cache.name}, expires: {cache.expire_time}")
+                    self.cached_content = cache
+                    self.model = genai.GenerativeModel.from_cached_content(
+                        self.cached_content,
+                        generation_config={"temperature": 0.7}
+                    )
+                    return
+                else:
+                    # Cache expired, delete it
+                    print(f"Cache expired, deleting: {cache.name}")
+                    try:
+                        cache.delete()
+                    except Exception as e:
+                        print(f"Warning: Failed to delete expired cache: {e}")
+
+        # Create new cache
+        self._create_cache(book_content)
 
     def create_chat(self, history: list[dict] = None):
         """Create a new chat session with optional history."""
