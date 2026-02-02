@@ -62,7 +62,7 @@ Use the knowledge above as your primary source of truth.
 """
 
         self.cached_content = caching.CachedContent.create(
-            model="models/gemini-3.0-pro-preview",
+            model="models/gemini-3-pro-preview",
             display_name="zippel-book-cache",
             system_instruction=full_system_instruction,
             contents=[],
